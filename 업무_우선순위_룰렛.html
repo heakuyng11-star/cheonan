@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>업무 장혜경 룰렛</title>
+  <style>
+    :root{
+      --bg:#f6f7fb;
+      --card:#ffffff;
+      --text:#1f2937;
+      --muted:#6b7280;
+      --line:#e5e7eb;
+      --shadow:0 12px 32px rgba(31,41,55,.09);
+      --radius:22px;
+      --c1:#7c3aed;
+      --c2:#2563eb;
+      --c3:#0ea5e9;
+      --c4:#10b981;
+      --c5:#f59e0b;
+      --c6:#ec4899;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family: Pretendard, "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at 8% 5%, rgba(124,58,237,.10), transparent 28%),
+        radial-gradient(circle at 95% 10%, rgba(14,165,233,.10), transparent 25%),
+        linear-gradient(180deg,#fafaff 0%,var(--bg) 100%);
+      min-height:100vh;
+    }
+
+    .wrap{
+      width:min(1180px, calc(100% - 28px));
+      margin:0 auto;
+      padding:36px 0 60px;
+    }
+
+    .hero{
+      background:linear-gradient(135deg,#ffffff 0%,#f8f5ff 55%,#eef9ff 100%);
+      border:1px solid rgba(124,58,237,.10);
+      box-shadow:var(--shadow);
+      border-radius:28px;
+      padding:30px;
+      position:relative;
+      overflow:hidden;
+    }
+
+    .hero:after{
+      content:"";
+      width:240px;height:240px;
+      position:absolute;
+      right:-80px;top:-90px;
+      border-radius:50%;
+      background:linear-gradient(135deg,rgba(236,72,153,.20),rgba(37,99,235,.12));
+      filter:blur(2px);
+    }
+
+    .eyebrow{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 12px;
+      border-radius:999px;
+      background:#fff;
+      border:1px solid #eee;
+      color:#6d28d9;
+      font-weight:800;
+      font-size:13px;
+    }
+
+    h1{
+      margin:14px 0 10px;
+      font-size:clamp(30px,5vw,54px);
+      line-height:1.05;
+      letter-spacing:-1.8px;
+      position:relative;
+      z-index:1;
+      background:linear-gradient(90deg,#6d28d9,#2563eb,#0891b2,#059669,#d97706,#db2777);
+      -webkit-background-clip:text;
+      background-clip:text;
+      color:transparent;
+    }
+
+    .hero p{
+      margin:0;
+      max-width:760px;
+      color:#596274;
+      line-height:1.7;
+      font-size:15px;
+      position:relative;
+      z-index:1;
+    }
+
+    .formula{
+      margin-top:18px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      position:relative;
+      z-index:1;
+    }
+    .formula span{
+      background:rgba(255,255,255,.82);
+      border:1px solid #e8e8f0;
+      border-radius:12px;
+      padding:9px 11px;
+      font-size:13px;
+      font-weight:700;
+    }
+
+    .section-title{
+      margin:30px 2px 14px;
+      display:flex;
+      align-items:end;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .section-title h2{margin:0;font-size:21px;letter-spacing:-.5px}
+    .section-title small{color:var(--muted)}
+
+    .task-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:16px;
+    }
+
+    .task-card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:20px;
+      box-shadow:0 8px 22px rgba(31,41,55,.055);
+      transition:.22s ease;
+      position:relative;
+      overflow:hidden;
+    }
+
+    .task-card:hover{
+      transform:translateY(-2px);
+      box-shadow:0 14px 28px rgba(31,41,55,.09);
+    }
+
+    .task-card:before{
+      content:"";
+      position:absolute;
+      left:0;top:0;bottom:0;
+      width:5px;
+      background:var(--accent);
+    }
+
+    .task-top{
+      display:grid;
+      grid-template-columns:42px 1fr auto;
+      gap:10px;
+      align-items:center;
+      margin-bottom:16px;
+    }
+
+    .num{
+      width:36px;height:36px;
+      display:grid;place-items:center;
+      border-radius:12px;
+      color:#fff;
+      background:var(--accent);
+      font-weight:900;
+      box-shadow:0 8px 18px color-mix(in srgb,var(--accent) 25%, transparent);
+    }
+
+    .task-name{
+      min-width:0;
+      border:none;
+      outline:none;
+      width:100%;
+      font-size:17px;
+      font-weight:850;
+      color:var(--accent);
+      background:transparent;
+      border-bottom:2px solid #f0f1f5;
+      padding:8px 4px;
+      transition:.2s;
+    }
+    .task-name:focus{border-bottom-color:var(--accent)}
+    .task-name::placeholder{color:#a8adb7;font-weight:650}
+
+    .clear-btn{
+      border:none;background:#f5f6f8;color:#8b93a1;
+      width:34px;height:34px;border-radius:10px;
+      cursor:pointer;font-size:17px;
+    }
+    .clear-btn:hover{background:#fee2e2;color:#dc2626}
+
+    .slider-row{
+      display:grid;
+      grid-template-columns:72px 1fr 34px;
+      gap:10px;
+      align-items:center;
+      margin:12px 0;
+    }
+    .slider-label{font-size:14px;font-weight:800}
+    .slider-label.importance{color:#7c3aed}
+    .slider-label.urgency{color:#e11d48}
+    .slider-label.impact{color:#0284c7}
+
+    input[type="range"]{
+      width:100%;
+      accent-color:var(--accent);
+      cursor:pointer;
+    }
+
+    .value-pill{
+      width:32px;height:28px;
+      display:grid;place-items:center;
+      border-radius:9px;
+      background:#f3f4f6;
+      font-weight:900;
+      color:var(--accent);
+      font-size:14px;
+    }
+
+    .actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      margin:24px 0;
+    }
+
+    button.main{
+      border:none;
+      border-radius:15px;
+      padding:14px 19px;
+      font-size:15px;
+      font-weight:900;
+      cursor:pointer;
+      transition:.18s ease;
+      box-shadow:0 9px 18px rgba(31,41,55,.10);
+    }
+    button.main:active{transform:scale(.98)}
+    .calc-btn{
+      color:#fff;
+      background:linear-gradient(100deg,#6d28d9,#2563eb);
+    }
+    .roulette-btn{
+      color:#fff;
+      background:linear-gradient(100deg,#f97316,#ec4899);
+    }
+    .reset-btn{
+      color:#4b5563;
+      background:#fff;
+      border:1px solid var(--line)!important;
+    }
+
+    .result-panel{
+      display:none;
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:26px;
+      box-shadow:var(--shadow);
+      padding:22px;
+      margin-top:18px;
+    }
+    .result-panel.show{display:block;animation:fadeUp .35s ease}
+
+    @keyframes fadeUp{
+      from{opacity:0;transform:translateY(12px)}
+      to{opacity:1;transform:translateY(0)}
+    }
+
+    .result-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:15px;
+    }
+    .result-head h2{margin:0;font-size:21px}
+    .score-note{color:var(--muted);font-size:12px}
+
+    .rank-list{display:grid;gap:10px}
+    .rank-row{
+      display:grid;
+      grid-template-columns:64px minmax(130px,1.15fr) 3fr 70px;
+      gap:12px;
+      align-items:center;
+      padding:13px 14px;
+      border-radius:16px;
+      background:#fafafa;
+      border:1px solid #f0f0f2;
+      transition:.25s;
+    }
+    .rank-row.top{
+      background:linear-gradient(90deg,#fff7ed,#fff1f2,#f5f3ff);
+      border-color:#f4c7d9;
+      box-shadow:0 10px 25px rgba(236,72,153,.10);
+      transform:scale(1.008);
+    }
+    .rank-badge{
+      font-weight:950;
+      font-size:16px;
+      white-space:nowrap;
+    }
+    .rank-name{
+      font-weight:850;
+      min-width:0;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+    .bar-track{
+      height:13px;
+      background:#e9ecf2;
+      border-radius:999px;
+      overflow:hidden;
+    }
+    .bar{
+      height:100%;
+      width:0;
+      border-radius:999px;
+      background:linear-gradient(90deg,var(--accent),color-mix(in srgb,var(--accent) 60%,white));
+      transition:width .9s cubic-bezier(.22,.8,.3,1);
+    }
+    .score{
+      text-align:right;
+      font-weight:950;
+      color:var(--accent);
+      font-variant-numeric:tabular-nums;
+    }
+
+    .roulette-panel{
+      display:none;
+      margin-top:18px;
+      border-radius:26px;
+      padding:22px;
+      background:linear-gradient(145deg,#111827,#1f2937);
+      color:white;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      position:relative;
+    }
+    .roulette-panel.show{display:block;animation:fadeUp .3s ease}
+    .roulette-panel:before{
+      content:"";
+      position:absolute;
+      width:240px;height:240px;border-radius:50%;
+      right:-90px;top:-90px;
+      background:radial-gradient(circle,rgba(236,72,153,.42),transparent 65%);
+    }
+
+    .roulette-title{margin:0 0 14px;font-size:20px}
+    .roulette-stage{
+      min-height:126px;
+      display:grid;
+      place-items:center;
+      text-align:center;
+      position:relative;
+      z-index:1;
+    }
+    .roulette-name{
+      font-size:clamp(24px,5vw,42px);
+      font-weight:950;
+      letter-spacing:-1px;
+      padding:14px 22px;
+      border-radius:18px;
+      background:rgba(255,255,255,.10);
+      backdrop-filter:blur(6px);
+      border:1px solid rgba(255,255,255,.16);
+      min-width:min(620px,92%);
+      transition:.12s;
+    }
+    .roulette-name.spin{
+      transform:scale(1.04);
+      filter:blur(.25px);
+    }
+
+    .roulette-result{
+      display:none;
+      text-align:center;
+      margin-top:6px;
+      position:relative;
+      z-index:1;
+    }
+    .roulette-result.show{display:block}
+    .selected{
+      display:inline-block;
+      margin-top:6px;
+      font-size:21px;
+      font-weight:950;
+      color:#fde68a;
+    }
+
+    .disclaimer{
+      margin-top:18px;
+      padding:12px 14px;
+      border-radius:14px;
+      background:rgba(255,255,255,.08);
+      color:#d1d5db;
+      line-height:1.6;
+      font-size:13px;
+      position:relative;
+      z-index:1;
+    }
+
+    .empty-msg{
+      padding:24px;
+      text-align:center;
+      color:var(--muted);
+    }
+
+    .toast{
+      position:fixed;
+      left:50%;bottom:24px;
+      transform:translate(-50%,20px);
+      background:#111827;color:white;
+      padding:11px 16px;border-radius:999px;
+      opacity:0;pointer-events:none;
+      transition:.25s;
+      font-size:13px;font-weight:800;
+      z-index:10;
+      box-shadow:0 10px 30px rgba(0,0,0,.22);
+    }
+    .toast.show{opacity:1;transform:translate(-50%,0)}
+
+    footer{
+      text-align:center;
+      color:#9298a3;
+      font-size:12px;
+      margin-top:24px;
+      line-height:1.7;
+    }
+
+    @media (max-width:780px){
+      .wrap{width:min(100% - 20px,1180px);padding-top:18px}
+      .hero{padding:22px;border-radius:22px}
+      .task-grid{grid-template-columns:1fr}
+      .rank-row{
+        grid-template-columns:52px 1fr 60px;
+        gap:8px;
+      }
+      .bar-track{grid-column:1/-1;grid-row:2}
+      .score{grid-column:3}
+      .rank-name{grid-column:2}
+      .rank-badge{grid-column:1}
+      .actions button{flex:1 1 190px}
+    }
+
+    @media (max-width:440px){
+      .hero p{font-size:14px}
+      .task-card{padding:16px}
+      .slider-row{grid-template-columns:64px 1fr 30px}
+      button.main{width:100%}
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <span class="eyebrow">🎯 오늘의 업무 선택 도우미</span>
+      <h1>업무 장혜경의 룰렛</h1>
+      <p>
+        중요도·긴급도·영향도를 비교해 업무 우선순위를 시각적으로 확인하고,
+        결정이 어려울 때는 재미로 룰렛을 돌려 오늘 먼저 볼 업무도 골라보세요.
+      </p>
+      <div class="formula">
+        <span>중요도 × 40</span>
+        <span>긴급도 × 35</span>
+        <span>영향도 × 25</span>
+        <span>최종 점수 = 원점수 ÷ 5 → 100점 환산</span>
+      </div>
+    </section>
+
+    <div class="section-title">
+      <h2>업무 후보 입력</h2>
+      <small>최대 6개 · 빈 항목은 계산에서 제외</small>
+    </div>
+
+    <section id="taskGrid" class="task-grid"></section>
+
+    <div class="actions">
+      <button class="main calc-btn" id="calcBtn">📊 우선순위 계산</button>
+      <button class="main roulette-btn" id="rouletteBtn">🎡 오늘 먼저 볼 업무 뽑기</button>
+      <button class="main reset-btn" id="resetBtn">↺ 예시로 초기화</button>
+    </div>
+
+    <section id="resultPanel" class="result-panel">
+      <div class="result-head">
+        <h2>우선순위 결과</h2>
+        <span class="score-note">점수가 높을수록 우선순위가 높습니다.</span>
+      </div>
+      <div id="rankList" class="rank-list"></div>
+    </section>
+
+    <section id="roulettePanel" class="roulette-panel">
+      <h2 class="roulette-title">🎡 오늘 먼저 볼 업무 뽑기</h2>
+      <div class="roulette-stage">
+        <div id="rouletteName" class="roulette-name">버튼을 눌러 시작하세요!</div>
+      </div>
+      <div id="rouletteResult" class="roulette-result">
+        오늘 먼저 볼 업무는<br>
+        <span id="selectedTask" class="selected"></span>
+      </div>
+      <div class="disclaimer">
+        ※ 이 룰렛은 <strong>재미를 위한 무작위 선택 기능</strong>입니다.
+        실제 업무 우선순위는 중요도·긴급도·영향도, 법정기한, 민원 위험,
+        상급자 지시, 협업 일정 등 실제 업무 조건을 종합해 판단하세요.
+      </div>
+    </section>
+
+    <footer>
+      업무 우선순위 점수는 비교를 돕기 위한 간이 지표입니다.<br>
+      동일 점수일 경우 입력 순서가 앞선 업무가 먼저 표시됩니다.
+    </footer>
+  </main>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const COLORS = ['#7c3aed','#2563eb','#0ea5e9','#10b981','#f59e0b','#ec4899'];
+    const EXAMPLES = [
+      '민원 안내 개선',
+      '공원 시설 점검',
+      '직원 디지털 교육',
+      '행사 준비',
+      '주차 민원 개선',
+      ''
+    ];
+
+    const taskGrid = document.getElementById('taskGrid');
+    const resultPanel = document.getElementById('resultPanel');
+    const rankList = document.getElementById('rankList');
+    const roulettePanel = document.getElementById('roulettePanel');
+    const rouletteName = document.getElementById('rouletteName');
+    const rouletteResult = document.getElementById('rouletteResult');
+    const selectedTask = document.getElementById('selectedTask');
+    const toast = document.getElementById('toast');
+
+    function showToast(msg){
+      toast.textContent = msg;
+      toast.classList.add('show');
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(()=>toast.classList.remove('show'), 1800);
+    }
+
+    function createCards(){
+      taskGrid.innerHTML = '';
+      EXAMPLES.forEach((name,i)=>{
+        const card = document.createElement('article');
+        card.className = 'task-card';
+        card.style.setProperty('--accent', COLORS[i]);
+
+        card.innerHTML = `
+          <div class="task-top">
+            <div class="num">${i+1}</div>
+            <input class="task-name" aria-label="업무 ${i+1} 이름"
+              maxlength="40" value="${name}" placeholder="업무명을 입력하세요">
+            <button class="clear-btn" aria-label="업무 ${i+1} 지우기" title="지우기">×</button>
+          </div>
+
+          ${sliderHTML('importance','중요도',3,'importance')}
+          ${sliderHTML('urgency','긴급도',3,'urgency')}
+          ${sliderHTML('impact','영향도',3,'impact')}
+        `;
+
+        taskGrid.appendChild(card);
+      });
+      bindCardEvents();
+    }
+
+    function sliderHTML(kind,label,value,labelClass){
+      return `
+        <div class="slider-row">
+          <span class="slider-label ${labelClass}">${label}</span>
+          <input type="range" class="${kind}" min="1" max="5" step="1" value="${value}" aria-label="${label}">
+          <span class="value-pill">${value}</span>
+        </div>`;
+    }
+
+    function bindCardEvents(){
+      document.querySelectorAll('.task-card').forEach(card=>{
+        card.querySelectorAll('input[type="range"]').forEach(slider=>{
+          slider.addEventListener('input',()=>{
+            slider.nextElementSibling.textContent = slider.value;
+          });
+        });
+
+        card.querySelector('.clear-btn').addEventListener('click',()=>{
+          card.querySelector('.task-name').value = '';
+          card.querySelectorAll('input[type="range"]').forEach(s=>{
+            s.value = 3;
+            s.nextElementSibling.textContent = 3;
+          });
+          card.querySelector('.task-name').focus();
+        });
+      });
+    }
+
+    function getTasks(){
+      return [...document.querySelectorAll('.task-card')].map((card,index)=>{
+        const name = card.querySelector('.task-name').value.trim();
+        const importance = Number(card.querySelector('.importance').value);
+        const urgency = Number(card.querySelector('.urgency').value);
+        const impact = Number(card.querySelector('.impact').value);
+        const raw = importance * 40 + urgency * 35 + impact * 25;
+        const score = raw / 5; // max 500 -> 100
+        return {name, importance, urgency, impact, score, index, color:COLORS[index]};
+      }).filter(t=>t.name);
+    }
+
+    function calculate(){
+      const tasks = getTasks();
+      if(!tasks.length){
+        showToast('업무를 하나 이상 입력해주세요.');
+        return;
+      }
+
+      const sorted = [...tasks].sort((a,b)=>{
+        if(b.score !== a.score) return b.score - a.score;
+        return a.index - b.index;
+      });
+
+      rankList.innerHTML = '';
+
+      sorted.forEach((task,rank)=>{
+        const row = document.createElement('div');
+        row.className = 'rank-row' + (rank===0 ? ' top' : '');
+        row.style.setProperty('--accent',task.color);
+
+        let medal = `${rank+1}위`;
+        if(rank===0) medal = '🥇 1위';
+        else if(rank===1) medal = '🥈 2위';
+        else if(rank===2) medal = '🥉 3위';
+
+        row.innerHTML = `
+          <div class="rank-badge">${medal}</div>
+          <div class="rank-name">${escapeHTML(task.name)}${rank===0 ? ' ⭐' : ''}</div>
+          <div class="bar-track"><div class="bar"></div></div>
+          <div class="score">${task.score.toFixed(1)}점</div>
+        `;
+        rankList.appendChild(row);
+
+        requestAnimationFrame(()=>{
+          requestAnimationFrame(()=>{
+            row.querySelector('.bar').style.width = `${task.score}%`;
+          });
+        });
+      });
+
+      resultPanel.classList.add('show');
+      resultPanel.scrollIntoView({behavior:'smooth',block:'nearest'});
+    }
+
+    let spinning = false;
+
+    function spinRoulette(){
+      if(spinning) return;
+      const tasks = getTasks();
+      if(!tasks.length){
+        showToast('룰렛에 넣을 업무를 하나 이상 입력해주세요.');
+        return;
+      }
+
+      spinning = true;
+      roulettePanel.classList.add('show');
+      rouletteResult.classList.remove('show');
+      roulettePanel.scrollIntoView({behavior:'smooth',block:'nearest'});
+
+      const finalIndex = Math.floor(Math.random() * tasks.length);
+      const finalTask = tasks[finalIndex];
+
+      let count = 0;
+      const totalTicks = 28 + Math.floor(Math.random()*9);
+
+      function tick(){
+        const slowFactor = Math.max(0, count - totalTicks * 0.58);
+        const delay = Math.min(330, 70 + slowFactor * 18);
+
+        const preview = tasks[count % tasks.length];
+        rouletteName.textContent = preview.name;
+        rouletteName.style.color = preview.color;
+        rouletteName.classList.add('spin');
+        setTimeout(()=>rouletteName.classList.remove('spin'),55);
+
+        count++;
+
+        if(count < totalTicks){
+          setTimeout(tick, delay);
+        }else{
+          rouletteName.textContent = finalTask.name;
+          rouletteName.style.color = finalTask.color;
+          selectedTask.textContent = `✨ ${finalTask.name} ✨`;
+          selectedTask.style.color = finalTask.color === '#f59e0b' ? '#fde68a' : finalTask.color;
+          rouletteResult.classList.add('show');
+          spinning = false;
+          celebrate();
+        }
+      }
+
+      tick();
+    }
+
+    function celebrate(){
+      const panel = roulettePanel;
+      const pieces = 34;
+      for(let i=0;i<pieces;i++){
+        const p = document.createElement('i');
+        const color = COLORS[i % COLORS.length];
+        p.style.cssText = `
+          position:absolute;
+          left:${Math.random()*100}%;
+          top:-12px;
+          width:${5+Math.random()*6}px;
+          height:${7+Math.random()*10}px;
+          border-radius:3px;
+          background:${color};
+          z-index:3;
+          pointer-events:none;
+          transform:rotate(${Math.random()*180}deg);
+          animation:confetti ${1.2+Math.random()*1.4}s ease-in forwards;
+        `;
+        panel.appendChild(p);
+        setTimeout(()=>p.remove(),2800);
+      }
+    }
+
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes confetti{
+        to{
+          transform:translate(${(Math.random()*80-40)}px, 430px) rotate(640deg);
+          opacity:0;
+        }
+      }`;
+    document.head.appendChild(style);
+
+    function resetAll(){
+      createCards();
+      resultPanel.classList.remove('show');
+      roulettePanel.classList.remove('show');
+      rouletteName.textContent = '버튼을 눌러 시작하세요!';
+      rouletteName.style.color = 'white';
+      rouletteResult.classList.remove('show');
+      showToast('예시 업무로 초기화했습니다.');
+      window.scrollTo({top:0,behavior:'smooth'});
+    }
+
+    function escapeHTML(str){
+      return str.replace(/[&<>"']/g, m=>({
+        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'
+      })[m]);
+    }
+
+    document.getElementById('calcBtn').addEventListener('click',calculate);
+    document.getElementById('rouletteBtn').addEventListener('click',spinRoulette);
+    document.getElementById('resetBtn').addEventListener('click',resetAll);
+
+    createCards();
+  </script>
+</body>
+</html>
