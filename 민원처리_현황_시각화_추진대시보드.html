@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>민원처리 현황 시각화 개선 | 추진 대시보드</title>
+  <style>
+    :root{
+      --bg:#f4f7fb;
+      --surface:#ffffff;
+      --surface2:#eef4ff;
+      --text:#172033;
+      --muted:#68748a;
+      --line:#dfe6f0;
+      --primary:#1f5eff;
+      --primary2:#1342ba;
+      --success:#0b9a65;
+      --warn:#e98b00;
+      --danger:#d84444;
+      --decision:#7a4ce0;
+      --shadow:0 10px 30px rgba(29,50,88,.08);
+      --radius:20px;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR","Apple SD Gothic Neo",sans-serif;
+      background:linear-gradient(180deg,#edf3ff 0,#f7f9fc 320px,#f4f7fb 100%);
+      color:var(--text);
+      line-height:1.55;
+    }
+    button{font:inherit}
+    .app{max-width:1180px;margin:0 auto;padding:24px 18px 80px}
+    .hero{
+      background:linear-gradient(135deg,#173f96,#1f5eff 56%,#5d8fff);
+      color:#fff;border-radius:28px;padding:28px;box-shadow:0 18px 48px rgba(31,94,255,.24);
+      position:relative;overflow:hidden;
+    }
+    .hero:after{
+      content:"";position:absolute;width:220px;height:220px;border-radius:50%;
+      background:rgba(255,255,255,.09);right:-60px;top:-80px;
+    }
+    .eyebrow{font-weight:800;font-size:.8rem;letter-spacing:.08em;opacity:.86}
+    h1{font-size:clamp(1.8rem,4vw,3rem);line-height:1.2;margin:8px 0 10px}
+    .hero p{max-width:790px;margin:0;color:rgba(255,255,255,.88)}
+    .hero-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+    .hero-actions a{
+      color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.35);
+      background:rgba(255,255,255,.12);padding:9px 13px;border-radius:999px;font-size:.9rem;
+    }
+    .section{margin-top:26px}
+    .section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:13px}
+    .section-head h2{font-size:1.25rem;margin:0}
+    .section-head p{margin:0;color:var(--muted);font-size:.9rem}
+    .grid{display:grid;gap:14px}
+    .summary-grid{grid-template-columns:repeat(4,1fr)}
+    .card{
+      background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+      box-shadow:var(--shadow);padding:18px;
+    }
+    .metric .icon{font-size:1.5rem}
+    .metric b{display:block;font-size:1.15rem;margin:10px 0 4px}
+    .metric span{color:var(--muted);font-size:.9rem}
+    .metric .tag{display:inline-block;margin-top:12px;font-size:.76rem;font-weight:800;border-radius:999px;padding:5px 8px;background:var(--surface2);color:var(--primary2)}
+    .goalbar{
+      display:grid;grid-template-columns:1.2fr 1fr;gap:14px;align-items:stretch;
+    }
+    .focus-box{
+      background:linear-gradient(135deg,#fff,#f3f7ff);border-left:5px solid var(--primary)
+    }
+    .focus-box strong{font-size:1.1rem}
+    .focus-box ul{margin:10px 0 0;padding-left:20px}
+    .focus-box li{margin:5px 0}
+    .notice{
+      background:#fff8e8;border-color:#f1d99e;
+    }
+    .notice strong{color:#925d00}
+    .tasks{grid-template-columns:repeat(5,1fr)}
+    .task{
+      cursor:pointer;transition:.18s ease;min-height:155px;position:relative;overflow:hidden;
+    }
+    .task:hover,.task.active{transform:translateY(-3px);border-color:#9ab4ff;box-shadow:0 16px 36px rgba(31,94,255,.14)}
+    .task .num{font-size:.75rem;font-weight:900;color:var(--primary);letter-spacing:.08em}
+    .task h3{font-size:1rem;margin:8px 0 6px}
+    .task p{font-size:.84rem;color:var(--muted);margin:0}
+    .task:after{content:"›";position:absolute;right:14px;bottom:8px;font-size:1.7rem;color:#aab8d3}
+    .task-detail{margin-top:14px;display:none}
+    .task-detail.show{display:block}
+    .detail-grid{display:grid;grid-template-columns:1fr 1.25fr;gap:16px}
+    .label{font-size:.75rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+    .detail-list{padding-left:20px;margin:9px 0 0}
+    .detail-list li{margin:7px 0}
+    .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+    .chip{font-size:.82rem;padding:6px 9px;border-radius:999px;background:#eef3fb;border:1px solid #d9e2f1}
+    .steps{
+      display:grid;grid-template-columns:repeat(6,1fr);gap:10px;
+    }
+    .step{
+      padding:15px 14px;border-radius:18px;background:#fff;border:1px solid var(--line);cursor:pointer;
+      position:relative;transition:.18s ease;
+    }
+    .step.active{border-color:var(--primary);background:#f3f7ff;box-shadow:0 10px 24px rgba(31,94,255,.1)}
+    .step .badge{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:#eaf0ff;color:var(--primary);font-weight:900}
+    .step h3{font-size:.95rem;margin:9px 0 3px}
+    .step small{color:var(--muted)}
+    .step-panel{margin-top:12px}
+    .step-panel ul{margin:8px 0 0;padding-left:20px}
+    .risk-grid{grid-template-columns:repeat(3,1fr)}
+    .risk{border-left:5px solid var(--warn)}
+    .risk.critical{border-left-color:var(--danger)}
+    .risk .risk-title{font-weight:900}
+    .risk .response{margin-top:11px;padding:10px;border-radius:12px;background:#f7f9fc;font-size:.87rem}
+    .risk .response b{color:var(--success)}
+    .decision-wrap{
+      background:linear-gradient(140deg,#2f2454,#5135a8);
+      color:#fff;border-radius:24px;padding:22px;box-shadow:0 14px 34px rgba(78,54,166,.2)
+    }
+    .decision-wrap .section-head p{color:#d9d0ff}
+    .decision-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    .decision{
+      background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);
+      border-radius:16px;padding:15px;cursor:pointer;
+    }
+    .decision input{accent-color:#a88cff;transform:scale(1.15)}
+    .decision h3{font-size:.96rem;margin:7px 0 5px}
+    .decision p{font-size:.82rem;margin:0;color:#ddd4ff}
+    .decision.done{background:rgba(44,210,148,.12);border-color:rgba(92,230,174,.5)}
+    .pending{
+      display:grid;grid-template-columns:repeat(2,1fr);gap:10px
+    }
+    .pending-item{
+      display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;border:1px dashed #cdd6e5;border-radius:14px;background:#fff;
+    }
+    .pending-item span:last-child{font-size:.78rem;background:#fff1d9;color:#956100;padding:4px 7px;border-radius:999px;white-space:nowrap}
+    .footer-note{margin-top:20px;color:var(--muted);font-size:.8rem;text-align:center}
+    .topnav{
+      position:sticky;top:10px;z-index:20;display:flex;gap:7px;overflow:auto;margin:14px 0 4px;
+      padding:8px;background:rgba(255,255,255,.88);backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:999px;box-shadow:var(--shadow);
+    }
+    .topnav a{flex:0 0 auto;text-decoration:none;color:var(--text);font-size:.82rem;font-weight:800;padding:7px 10px;border-radius:999px}
+    .topnav a:hover{background:#edf3ff;color:var(--primary)}
+    @media (max-width:980px){
+      .summary-grid{grid-template-columns:repeat(2,1fr)}
+      .tasks{grid-template-columns:repeat(2,1fr)}
+      .steps{grid-template-columns:repeat(3,1fr)}
+      .risk-grid{grid-template-columns:repeat(2,1fr)}
+      .decision-grid{grid-template-columns:repeat(2,1fr)}
+    }
+    @media (max-width:640px){
+      body{background:#f4f7fb}
+      .app{padding:12px 12px 60px}
+      .hero{padding:22px 18px;border-radius:22px}
+      .hero p{font-size:.9rem}
+      .section{margin-top:20px}
+      .section-head{align-items:flex-start;flex-direction:column;gap:4px}
+      .summary-grid,.goalbar,.tasks,.detail-grid,.risk-grid,.decision-grid,.pending{grid-template-columns:1fr}
+      .steps{grid-template-columns:repeat(2,1fr)}
+      .task{min-height:130px}
+      .card{padding:15px;border-radius:17px}
+      .topnav{top:6px;margin-top:10px;border-radius:17px}
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="hero">
+      <div class="eyebrow">민원처리 현황 시각화 개선 기획서 · 실행형 요약</div>
+      <h1>민원처리 현황<br>한눈에 보는 추진 대시보드</h1>
+      <p>부서별 입력·집계기준을 표준화하고, 반복적인 수작업 취합을 줄이면서 긴급·장기 미처리 민원을 빠르게 확인할 수 있는 관리체계를 검토합니다.</p>
+      <div class="hero-actions">
+        <a href="#tasks">추진과제 보기</a>
+        <a href="#steps">실행절차 보기</a>
+        <a href="#risks">위험요인 보기</a>
+        <a href="#decisions">의사결정 보기</a>
+      </div>
+    </section>
+
+    <nav class="topnav" aria-label="빠른 이동">
+      <a href="#summary">핵심요약</a>
+      <a href="#tasks">추진과제</a>
+      <a href="#steps">실행절차</a>
+      <a href="#risks">위험관리</a>
+      <a href="#decisions">의사결정</a>
+      <a href="#pending">추가확인</a>
+    </nav>
+
+    <section class="section" id="summary">
+      <div class="section-head">
+        <div><h2>한눈에 보는 핵심요약</h2><p>현재 문제와 추진방향을 4개 카드로 압축</p></div>
+      </div>
+      <div class="grid summary-grid">
+        <article class="card metric"><div class="icon">📁</div><b>분산된 자료</b><span>여러 파일의 수치를 복사·정리해 월말 보고자료 작성</span><div class="tag">현재 문제</div></article>
+        <article class="card metric"><div class="icon">🔁</div><b>반복 재확인</b><span>부서별 집계기준 차이로 취합·검증 과정 반복</span><div class="tag">표준화 필요</div></article>
+        <article class="card metric"><div class="icon">⚠️</div><b>주요 민원 식별 지연</b><span>긴급·장기 미처리 건을 전체 현황에서 즉시 확인하기 어려움</span><div class="tag">가시성 개선</div></article>
+        <article class="card metric"><div class="icon">📊</div><b>목표 관리체계</b><span>자동 집계·조건별 조회·월별 추이 시각화 기능 검토</span><div class="tag">개선 방향</div></article>
+      </div>
+
+      <div class="goalbar section">
+        <div class="card focus-box">
+          <strong>핵심 추진목표</strong>
+          <ul>
+            <li>민원현황 입력방식 및 집계기준 표준화</li>
+            <li>반복적 취합·재확인 업무 최소화</li>
+            <li>주요 지표 자동 집계 및 조건별 조회체계 마련</li>
+            <li>긴급·장기 미처리 민원의 신속한 확인</li>
+            <li>월별 처리현황 및 변화 추이 시각화</li>
+          </ul>
+        </div>
+        <div class="card notice">
+          <strong>⚑ 정량 목표는 아직 확정 전</strong>
+          <p>업무시간 단축률, 오류 감소율, 목표수치 등은 실제 운영자료를 확인한 뒤 산정하는 것이 전제입니다.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="tasks">
+      <div class="section-head">
+        <div><h2>클릭형 주요 추진과제</h2><p>카드를 누르면 현황·추진방안이 펼쳐집니다.</p></div>
+      </div>
+      <div class="grid tasks" id="taskCards"></div>
+      <div class="card task-detail" id="taskDetail" aria-live="polite"></div>
+    </section>
+
+    <section class="section" id="steps">
+      <div class="section-head">
+        <div><h2>단계형 실행절차</h2><p>6단계 순차 추진 구조</p></div>
+      </div>
+      <div class="steps" id="stepCards"></div>
+      <div class="card step-panel" id="stepPanel"></div>
+    </section>
+
+    <section class="section" id="risks">
+      <div class="section-head">
+        <div><h2>위험요인 및 대응방안</h2><p>업무 신뢰성과 지속운영에 직접 영향을 주는 항목 강조</p></div>
+      </div>
+      <div class="grid risk-grid">
+        <article class="card risk"><div class="risk-title">기준 불일치</div><p>부서별 기준 차이로 동일 자료의 집계 결과가 달라질 가능성</p><div class="response"><b>대응</b> 공통 입력항목 및 세부 집계기준 사전 확정</div></article>
+        <article class="card risk critical"><div class="risk-title">입력 누락·오류</div><p>자료 누락 또는 오류 시 전체 현황자료의 신뢰성 저하</p><div class="response"><b>대응</b> 필수 입력항목 지정 및 데이터 검증방식 마련 검토</div></article>
+        <article class="card risk critical"><div class="risk-title">개인정보 노출</div><p>관리화면에 개인정보가 노출될 경우 보호 문제 발생 가능</p><div class="response"><b>대응</b> 개인정보 대시보드 미표시를 기본원칙으로 적용</div></article>
+        <article class="card risk"><div class="risk-title">기존 시스템과 업무 중복</div><p>별도 관리체계 병행 시 이중입력 등 업무부담 발생 가능</p><div class="response"><b>대응</b> 기존 시스템 활용·연계·대체 가능 여부 사전 검토</div></article>
+        <article class="card risk"><div class="risk-title">운영주체 불명확</div><p>담당부서·책임자가 불명확하면 지속적인 자료관리 곤란</p><div class="response"><b>대응</b> 운영 전 담당부서 및 운영책임자 지정</div></article>
+        <article class="card risk"><div class="risk-title">유지관리 부담</div><p>관리기준 변경 및 기능개선에 따라 지속적 관리 필요</p><div class="response"><b>대응</b> 구축방식 결정 단계에서 운영·유지관리 방법 함께 검토</div></article>
+      </div>
+    </section>
+
+    <section class="section decision-wrap" id="decisions">
+      <div class="section-head">
+        <div><h2>의사결정이 필요한 사항</h2><p>체크 상태는 현재 브라우저에 저장됩니다.</p></div>
+      </div>
+      <div class="decision-grid" id="decisionGrid"></div>
+    </section>
+
+    <section class="section" id="pending">
+      <div class="section-head">
+        <div><h2>추가 확인사항</h2><p>확정 전 반드시 확인할 실무 항목</p></div>
+      </div>
+      <div class="pending">
+        <div class="pending-item"><span>현재 사용 파일 및 시스템 현황</span><span>확인 필요</span></div>
+        <div class="pending-item"><span>참여 대상 부서·사용자 범위</span><span>확인 필요</span></div>
+        <div class="pending-item"><span>공통 입력항목 및 집계기준</span><span>확인 필요</span></div>
+        <div class="pending-item"><span>관리지표 및 산정방식</span><span>확인 필요</span></div>
+        <div class="pending-item"><span>긴급 민원 판단기준</span><span>확인 필요</span></div>
+        <div class="pending-item"><span>장기 미처리 판단기준</span><span>확인 필요</span></div>
+        <div class="pending-item"><span>대시보드 구축방식</span><span>확인 필요</span></div>
+        <div class="pending-item"><span>기존 시스템 활용·연계 여부</span><span>확인 필요</span></div>
+        <div class="pending-item"><span>사용자별 권한체계</span><span>확인 필요</span></div>
+        <div class="pending-item"><span>개인정보 보호방안</span><span>확인 필요</span></div>
+        <div class="pending-item"><span>시험 적용 대상 및 운영방식</span><span>확인 필요</span></div>
+        <div class="pending-item"><span>구축 일정·예산·담당부서·운영책임자</span><span>추가 확정</span></div>
+      </div>
+    </section>
+
+    <div class="footer-note">민원처리 현황 시각화 개선 기획서(안) 기반 · 단일 HTML 반응형 재구성</div>
+  </main>
+
+<script>
+const tasks = [
+  {
+    title:"공통 입력체계 마련", icon:"🧩",
+    summary:"부서별 입력양식·작성기준·분류기준을 공통화",
+    current:"부서별 집계기준 차이로 자료 취합 및 확인 과정이 반복되고 있음.",
+    actions:["부서별 공통 입력양식 마련","입력항목 및 작성기준 표준화","처리상태·긴급도 등 공통 분류기준 설정"],
+    note:"세부 입력항목 및 분류기준은 관계부서 협의 후 확정 필요"
+  },
+  {
+    title:"관리지표 자동 집계", icon:"⚙️",
+    summary:"입력자료를 기반으로 주요 현황 자동 집계 검토",
+    current:"여러 파일에 있는 수치를 수작업으로 취합하여 보고자료를 작성하고 있음.",
+    actions:["전체 민원 건수","처리상태별 현황","긴급도별 현황","장기 미처리 현황","월별 처리 추이"],
+    note:"실제 적용 지표와 세부 산정방식은 추가 확인 필요"
+  },
+  {
+    title:"조건별 조회기능", icon:"🔎",
+    summary:"필요한 민원을 부서·상태·긴급도 기준으로 조회",
+    current:"전체 현황에서 필요한 조건의 민원을 즉시 확인하기 어려움.",
+    actions:["부서별 조회","처리상태별 조회","긴급도별 조회","업무 활용성을 고려한 추가 검색조건 검토"],
+    note:"실제 업무 사용성을 기준으로 검색조건 확대 여부 검토"
+  },
+  {
+    title:"월별 현황 시각화", icon:"📈",
+    summary:"접수·처리 추이와 주요 증감 현황을 차트로 표현",
+    current:"월별 변화와 장기 미처리 증감 현황을 직관적으로 보기 어려움.",
+    actions:["월별 접수·처리 현황 차트화","주요 증감 현황 시각화","장기 미처리 현황 표시"],
+    note:"적용 차트와 표시항목은 추가 확인 필요"
+  },
+  {
+    title:"개인정보·권한관리", icon:"🔐",
+    summary:"개인정보 미표시 원칙과 사용자별 권한구분",
+    current:"실제 업무 적용 시 개인정보와 사용자별 접근범위 검토가 필요함.",
+    actions:["개인정보 대시보드 미표시 원칙","입력·조회·관리 권한 구분","식별정보 활용 시 별도 보호조치 검토"],
+    note:"권한수준 및 개인정보 적용범위 확정 필요"
+  }
+];
+
+const taskCards = document.getElementById("taskCards");
+const taskDetail = document.getElementById("taskDetail");
+tasks.forEach((t,i)=>{
+  const el=document.createElement("article");
+  el.className="card task";
+  el.innerHTML=`<div class="num">TASK 0${i+1}</div><div style="font-size:1.45rem;margin-top:8px">${t.icon}</div><h3>${t.title}</h3><p>${t.summary}</p>`;
+  el.onclick=()=>showTask(i,el);
+  taskCards.appendChild(el);
+});
+function showTask(i, el){
+  document.querySelectorAll(".task").forEach(x=>x.classList.remove("active"));
+  el.classList.add("active");
+  const t=tasks[i];
+  taskDetail.innerHTML=`
+    <div class="detail-grid">
+      <div><div class="label">현황</div><p>${t.current}</p></div>
+      <div><div class="label">추진방안</div><ul class="detail-list">${t.actions.map(x=>`<li>${x}</li>`).join("")}</ul></div>
+    </div>
+    <div class="chips"><span class="chip">확정 전 검토사항</span><span class="chip">${t.note}</span></div>`;
+  taskDetail.classList.add("show");
+}
+showTask(0, taskCards.children[0]);
+
+const steps = [
+  ["현행 업무 분석",["부서별 민원현황 관리방식 조사","현재 사용 중인 파일 및 시스템 확인","자료 입력·취합·보고 절차 분석"]],
+  ["공통 관리기준 마련",["공통 입력항목 선정","집계 및 작성기준 표준화","처리상태·긴급도 등 분류기준 설정"]],
+  ["관리지표·화면 구성",["주요 관리지표 선정","조건별 조회기능 구성","월별 추이 및 시각화 화면 구성 검토"]],
+  ["구현방식 검토",["별도 관리도구 구축 여부 검토","기존 시스템 활용 또는 연계 가능 여부 검토","개인정보 보호 및 사용자 권한체계 검토"]],
+  ["시험 적용",["일부 업무 또는 부서를 대상으로 시험 적용 검토","데이터 입력·집계 오류 여부 확인","사용자 불편사항 및 개선 필요사항 확인"]],
+  ["운영체계 확정",["자료 입력·확인·관리 절차 확정","담당부서 및 운영책임자 지정","지속적인 자료관리 및 개선방안 마련"]]
+];
+const stepCards=document.getElementById("stepCards");
+const stepPanel=document.getElementById("stepPanel");
+steps.forEach((s,i)=>{
+  const el=document.createElement("div");
+  el.className="step";
+  el.innerHTML=`<div class="badge">${i+1}</div><h3>${s[0]}</h3><small>${i<5?"다음 단계로 연결":"운영 정착"}</small>`;
+  el.onclick=()=>showStep(i,el);
+  stepCards.appendChild(el);
+});
+function showStep(i,el){
+  document.querySelectorAll(".step").forEach(x=>x.classList.remove("active"));
+  el.classList.add("active");
+  stepPanel.innerHTML=`<div class="label">STEP ${i+1}</div><h3 style="margin:5px 0 0">${steps[i][0]}</h3><ul>${steps[i][1].map(x=>`<li>${x}</li>`).join("")}</ul>`;
+}
+showStep(0,stepCards.children[0]);
+
+const decisions=[
+  ["구축방향","별도 관리도구 구축 vs 기존 시스템 활용·연계"],
+  ["관리범위","참여부서·관리대상 민원·관리정보 범위"],
+  ["관리기준","처리상태·긴급·장기 미처리·관리지표 산정기준"],
+  ["운영체계","입력·확인·총괄관리·시스템 운영 담당과 책임자"],
+  ["개인정보·권한","미표시 원칙 적용범위 및 사용자별 권한수준"],
+  ["사업추진 조건","기능범위 확정 후 일정 검토 및 예산 산정"]
+];
+const dg=document.getElementById("decisionGrid");
+const saved=JSON.parse(localStorage.getItem("complaint-dashboard-decisions")||"{}");
+decisions.forEach((d,i)=>{
+  const el=document.createElement("label");
+  el.className="decision"+(saved[i]?" done":"");
+  el.innerHTML=`<input type="checkbox" ${saved[i]?"checked":""}> <span style="font-size:.78rem;font-weight:900">DECISION 0${i+1}</span><h3>${d[0]}</h3><p>${d[1]}</p>`;
+  const cb=el.querySelector("input");
+  cb.addEventListener("change",()=>{
+    saved[i]=cb.checked;
+    localStorage.setItem("complaint-dashboard-decisions",JSON.stringify(saved));
+    el.classList.toggle("done",cb.checked);
+  });
+  dg.appendChild(el);
+});
+</script>
+</body>
+</html>
