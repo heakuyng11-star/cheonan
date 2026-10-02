@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>점심 커피쏘기 사다리 타기</title>
+<style>
+  :root{
+    --bg1:#fff7fb;
+    --bg2:#eef9ff;
+    --card:#ffffffee;
+    --text:#354052;
+    --muted:#6c7482;
+    --shadow:0 16px 40px rgba(83, 90, 120, .15);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    min-height:100vh;
+    font-family:"Pretendard","Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;
+    color:var(--text);
+    background:
+      radial-gradient(circle at 10% 10%, #ffddea 0 8%, transparent 9%),
+      radial-gradient(circle at 90% 5%, #dff7ff 0 8%, transparent 9%),
+      linear-gradient(135deg,var(--bg1),var(--bg2));
+  }
+  .wrap{width:min(1100px,94vw);margin:0 auto;padding:24px 0 42px}
+  .hero{
+    text-align:center;
+    margin-bottom:18px;
+  }
+  .hero h1{
+    margin:0;
+    font-size:clamp(28px,5vw,48px);
+    line-height:1.15;
+    letter-spacing:-1.2px;
+    background:linear-gradient(90deg,#ff5d8f,#ff9f43,#f6c945,#38c98a,#4c9aff,#8867e8);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .hero p{margin:9px 0 0;color:var(--muted);font-size:clamp(14px,2.4vw,17px)}
+  .card{
+    background:var(--card);
+    backdrop-filter: blur(10px);
+    border:1px solid rgba(255,255,255,.9);
+    box-shadow:var(--shadow);
+    border-radius:24px;
+    padding:18px;
+  }
+  .controls{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:end}
+  .input-area{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .person-input{
+    border:2px solid #edf0f6;
+    background:#fff;
+    border-radius:15px;
+    padding:11px 12px;
+    outline:none;
+    transition:.2s;
+    font-size:15px;
+    min-width:0;
+  }
+  .person-input:focus{border-color:#8db7ff;box-shadow:0 0 0 4px #e8f1ff}
+  .btns{display:flex;gap:8px;flex-wrap:wrap}
+  button{
+    border:0;cursor:pointer;border-radius:15px;padding:12px 16px;font-weight:800;
+    font-size:15px;transition:transform .13s ease, box-shadow .2s ease, opacity .2s;
+  }
+  button:active{transform:scale(.96)}
+  .primary{
+    color:white;
+    background:linear-gradient(135deg,#ff66a3,#8b71ff,#4ca9ff);
+    box-shadow:0 10px 24px rgba(115,102,255,.26);
+  }
+  .secondary{background:#f5f7fb;color:#4f5968}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  .hint{grid-column:1/-1;font-size:13px;color:#7e8796;margin-top:-2px}
+  .game-card{margin-top:18px;overflow:hidden}
+  .top-labels,.bottom-labels{
+    position:relative;
+    width:100%;
+    height:80px;
+  }
+  .top-labels{margin-top:4px}
+  .bottom-labels{height:92px}
+  .player,.result-box{
+    position:absolute;
+    transform:translateX(-50%);
+    text-align:center;
+    width:min(130px,20vw);
+  }
+  .player{top:2px}
+  .animal{
+    display:inline-grid;place-items:center;
+    width:46px;height:46px;border-radius:50%;
+    background:#fff;
+    box-shadow:0 5px 15px rgba(0,0,0,.12);
+    font-size:28px;
+    border:3px solid #fff;
+  }
+  .player-name{
+    margin-top:5px;font-weight:800;font-size:clamp(12px,2vw,15px);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .ladder-stage{
+    position:relative;
+    width:100%;
+    height:min(58vh,520px);
+    min-height:360px;
+    border-radius:22px;
+    overflow:hidden;
+    background:
+      linear-gradient(180deg,rgba(255,255,255,.75),rgba(248,252,255,.85)),
+      repeating-linear-gradient(0deg,transparent 0 26px,rgba(200,220,245,.14) 27px 28px);
+    border:1px dashed #d7e1f0;
+  }
+  #ladderSvg{position:absolute;inset:0;width:100%;height:100%}
+  .runner{
+    position:absolute;
+    z-index:5;
+    width:44px;height:44px;
+    display:grid;place-items:center;
+    border-radius:50%;
+    background:white;
+    box-shadow:0 7px 18px rgba(0,0,0,.18);
+    font-size:28px;
+    transform:translate(-50%,-50%);
+    transition:left .18s linear, top .18s linear;
+    pointer-events:none;
+  }
+  .runner.active{animation:bob .35s ease-in-out infinite alternate}
+  @keyframes bob{to{transform:translate(-50%,-58%) rotate(4deg)}}
+  .result-box{top:8px}
+  .result-pill{
+    display:inline-flex;align-items:center;justify-content:center;
+    min-height:54px;padding:8px 10px;border-radius:16px;font-weight:900;
+    font-size:clamp(11px,1.8vw,14px);
+    line-height:1.2;background:#fff;box-shadow:0 6px 15px rgba(0,0,0,.1);
+  }
+  .result-box.hit .result-pill{
+    animation:pop .55s ease;
+    box-shadow:0 0 0 5px rgba(255,212,70,.25),0 10px 30px rgba(0,0,0,.16);
+  }
+  @keyframes pop{0%{transform:scale(.7)}65%{transform:scale(1.18)}100%{transform:scale(1)}}
+  .result-summary{
+    margin-top:16px;display:none;
+    border-radius:18px;padding:16px;
+    background:linear-gradient(135deg,#fff0f6,#f1f7ff);
+    text-align:center;
+  }
+  .result-summary.show{display:block;animation:fadeUp .45s ease}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .result-summary h2{margin:0 0 8px;font-size:22px;color:#ff4e91}
+  .summary-list{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+  .summary-chip{
+    background:#fff;padding:8px 12px;border-radius:999px;
+    box-shadow:0 4px 10px rgba(0,0,0,.07);font-weight:750;font-size:14px;
+  }
+  .sparkle{position:absolute;pointer-events:none;font-size:22px;animation:fly .9s ease forwards}
+  @keyframes fly{from{opacity:1;transform:translate(0,0) scale(.6)}to{opacity:0;transform:translate(var(--x),var(--y)) scale(1.5)}}
+  @media (max-width:760px){
+    .controls{grid-template-columns:1fr}
+    .input-area{grid-template-columns:repeat(2,1fr)}
+    .btns button{flex:1}
+    .card{padding:14px;border-radius:20px}
+    .ladder-stage{min-height:390px;height:52vh}
+    .animal,.runner{width:40px;height:40px;font-size:24px}
+    .player,.result-box{width:min(95px,23vw)}
+  }
+  @media (max-width:460px){
+    .wrap{width:96vw;padding-top:16px}
+    .hero h1{font-size:30px}
+    .input-area{gap:7px}
+    .person-input{font-size:14px;padding:10px}
+    .top-labels{height:72px}
+    .bottom-labels{height:94px}
+    .result-pill{padding:7px 6px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <h1>☕ 점심 커피쏘기 사다리 타기 🐾</h1>
+    <p>이름을 입력하고 귀여운 동물들과 무지개 사다리를 달려보세요!</p>
+  </div>
+
+  <section class="card">
+    <div class="controls">
+      <div class="input-area" id="inputArea"></div>
+      <div class="btns">
+        <button class="secondary" id="newBtn">🔀 사다리 새로 만들기</button>
+        <button class="primary" id="startBtn">🎯 사다리 시작!</button>
+      </div>
+      <div class="hint">4~6명 입력 가능 · 빈 칸은 자동 제외 · 실행할 때마다 결과가 섞입니다.</div>
+    </div>
+  </section>
+
+  <section class="card game-card">
+    <div class="top-labels" id="topLabels"></div>
+    <div class="ladder-stage" id="stage">
+      <svg id="ladderSvg" viewBox="0 0 1000 520" preserveAspectRatio="none"></svg>
+    </div>
+    <div class="bottom-labels" id="bottomLabels"></div>
+    <div class="result-summary" id="summary">
+      <h2>🎉 결과 발표!</h2>
+      <div class="summary-list" id="summaryList"></div>
+    </div>
+  </section>
+</div>
+
+<script>
+const colors = ['#ff5d8f','#ff9f43','#f6c945','#39c98a','#4c9aff','#8a6ce8','#ff75d1'];
+const animals = ['🐰','🐻','🐶','🐱','🐹','🐼'];
+const resultPool = ['꽝 😆','당첨! 커피 쏴라 ☕','다음에 쏘기 😉'];
+
+const inputArea = document.getElementById('inputArea');
+const topLabels = document.getElementById('topLabels');
+const bottomLabels = document.getElementById('bottomLabels');
+const svg = document.getElementById('ladderSvg');
+const stage = document.getElementById('stage');
+const startBtn = document.getElementById('startBtn');
+const newBtn = document.getElementById('newBtn');
+const summary = document.getElementById('summary');
+const summaryList = document.getElementById('summaryList');
+
+let state = { players: [], rungs: [], results: [], runners: [], running:false };
+
+for(let i=0;i<6;i++){
+  const inp=document.createElement('input');
+  inp.className='person-input';
+  inp.placeholder=`참가자 ${i+1}`;
+  inp.maxLength=10;
+  inp.value = i<4 ? ['혜경','팀원A','팀원B','팀원C'][i] : '';
+  inputArea.appendChild(inp);
+}
+
+function getPlayers(){
+  const names=[...document.querySelectorAll('.person-input')]
+    .map(i=>i.value.trim()).filter(Boolean).slice(0,6);
+  while(names.length<4) names.push(`참가자 ${names.length+1}`);
+  return names;
+}
+
+function shuffle(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function buildResults(n){
+  let arr=[];
+  while(arr.length<n){
+    arr.push(...shuffle(resultPool));
+  }
+  return shuffle(arr.slice(0,n));
+}
+
+function makeLadder(){
+  if(state.running) return;
+  summary.classList.remove('show');
+  summaryList.innerHTML='';
+  stage.querySelectorAll('.runner,.sparkle').forEach(e=>e.remove());
+
+  const players=getPlayers();
+  const n=players.length;
+  state.players=players;
+  state.results=buildResults(n);
+  state.rungs=[];
+  state.runners=[];
+
+  // generate complex but valid rungs; never adjacent on same row
+  const rows = 15 + Math.floor(Math.random()*5);
+  for(let r=0;r<rows;r++){
+    let used = new Set();
+    for(let c=0;c<n-1;c++){
+      if(used.has(c-1) || used.has(c)) continue;
+      if(Math.random() < 0.58){
+        state.rungs.push({row:r,col:c,color:colors[(r+c+Math.floor(Math.random()*colors.length))%colors.length]});
+        used.add(c);
+      }
+    }
+  }
+
+  renderLabels();
+  drawLadder();
+}
+
+function xPct(i,n){ return n===1 ? 50 : 8 + (84*i/(n-1)); }
+
+function renderLabels(){
+  const n=state.players.length;
+  topLabels.innerHTML='';
+  bottomLabels.innerHTML='';
+
+  state.players.forEach((name,i)=>{
+    const d=document.createElement('div');
+    d.className='player';
+    d.style.left=xPct(i,n)+'%';
+    d.innerHTML=`<div class="animal">${animals[i]}</div>
+      <div class="player-name" style="color:${colors[i%colors.length]}">${name}</div>`;
+    topLabels.appendChild(d);
+  });
+
+  state.results.forEach((res,i)=>{
+    const d=document.createElement('div');
+    d.className='result-box';
+    d.dataset.col=i;
+    d.style.left=xPct(i,n)+'%';
+    d.innerHTML=`<div class="result-pill" style="color:${colors[(i+2)%colors.length]}">${res}</div>`;
+    bottomLabels.appendChild(d);
+  });
+}
+
+function drawLadder(){
+  const n=state.players.length;
+  const W=1000,H=520, top=28,bottom=492;
+  const x = i => 80 + (840*i/(n-1));
+  svg.innerHTML='';
+
+  for(let i=0;i<n;i++){
+    const line=document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1',x(i));line.setAttribute('x2',x(i));
+    line.setAttribute('y1',top);line.setAttribute('y2',bottom);
+    line.setAttribute('stroke',colors[i%colors.length]);
+    line.setAttribute('stroke-width','8');
+    line.setAttribute('stroke-linecap','round');
+    line.setAttribute('opacity','.8');
+    svg.appendChild(line);
+  }
+  const rows = Math.max(...state.rungs.map(r=>r.row),15)+1;
+  state.rungs.forEach((r,idx)=>{
+    const yy = top + (bottom-top)*((r.row+1)/(rows+1));
+    const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+    const wave = (idx%2===0 ? 8 : -8);
+    path.setAttribute('d',`M ${x(r.col)} ${yy} Q ${(x(r.col)+x(r.col+1))/2} ${yy+wave} ${x(r.col+1)} ${yy}`);
+    path.setAttribute('stroke',r.color);
+    path.setAttribute('stroke-width','7');
+    path.setAttribute('fill','none');
+    path.setAttribute('stroke-linecap','round');
+    path.setAttribute('opacity','.9');
+    svg.appendChild(path);
+  });
+}
+
+function getPath(startCol){
+  const n=state.players.length;
+  const rows = Math.max(...state.rungs.map(r=>r.row),15)+1;
+  const byRow = Array.from({length:rows},()=>[]);
+  state.rungs.forEach(r=>byRow[r.row].push(r));
+
+  let col=startCol;
+  let pts=[{col,row:-1}];
+  for(let r=0;r<rows;r++){
+    const rung = byRow[r].find(g=>g.col===col || g.col+1===col);
+    if(rung){
+      const next = rung.col===col ? col+1 : col-1;
+      pts.push({col,row:r,mid:true});
+      col=next;
+      pts.push({col,row:r,after:true});
+    } else {
+      pts.push({col,row:r});
+    }
+  }
+  pts.push({col,row:rows});
+  return {pts,endCol:col,rows};
+}
+
+function positionRunner(el,col,row,rows){
+  const n=state.players.length;
+  const left=xPct(col,n);
+  const topPct = 4 + (92*((row+1)/(rows+1)));
+  el.style.left=left+'%';
+  el.style.top=topPct+'%';
+}
+
+function delay(ms){return new Promise(r=>setTimeout(r,ms))}
+
+async function animateOne(i){
+  const {pts,endCol,rows}=getPath(i);
+  const runner=document.createElement('div');
+  runner.className='runner active';
+  runner.textContent=animals[i];
+  runner.style.border=`3px solid ${colors[i%colors.length]}`;
+  stage.appendChild(runner);
+  positionRunner(runner,i,-1,rows);
+  await delay(180);
+
+  for(const p of pts.slice(1)){
+    positionRunner(runner,p.col,p.row,rows);
+    await delay(p.after ? 150 : 120);
+  }
+  runner.classList.remove('active');
+  document.querySelector(`.result-box[data-col="${endCol}"]`)?.classList.add('hit');
+  burstAt(endCol);
+  return {name:state.players[i], result:state.results[endCol], endCol};
+}
+
+function burstAt(col){
+  const n=state.players.length;
+  const left=xPct(col,n);
+  for(let i=0;i<10;i++){
+    const s=document.createElement('div');
+    s.className='sparkle';
+    s.textContent=['✨','💖','⭐','🎉'][i%4];
+    s.style.left=`calc(${left}% - 8px)`;
+    s.style.top='92%';
+    s.style.setProperty('--x',`${(Math.random()*120-60)}px`);
+    s.style.setProperty('--y',`${-(35+Math.random()*90)}px`);
+    stage.appendChild(s);
+    setTimeout(()=>s.remove(),1000);
+  }
+}
+
+async function startGame(){
+  if(state.running) return;
+  makeLadder();
+  state.running=true;
+  startBtn.disabled=true;
+  newBtn.disabled=true;
+  document.querySelectorAll('.result-box').forEach(b=>b.classList.remove('hit'));
+
+  const results=[];
+  for(let i=0;i<state.players.length;i++){
+    results.push(await animateOne(i));
+    await delay(220);
+  }
+
+  summaryList.innerHTML=results.map((r,i)=>
+    `<div class="summary-chip"><span style="color:${colors[i%colors.length]}">${animals[i]} ${r.name}</span> → <b>${r.result}</b></div>`
+  ).join('');
+  summary.classList.add('show');
+  state.running=false;
+  startBtn.disabled=false;
+  newBtn.disabled=false;
+}
+
+startBtn.addEventListener('click',startGame);
+newBtn.addEventListener('click',makeLadder);
+window.addEventListener('resize',()=>{ if(!state.running) drawLadder(); });
+
+makeLadder();
+</script>
+</body>
+</html>
